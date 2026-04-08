@@ -1,0 +1,46 @@
+{
+  "scan": {
+    "code_extensions": [
+      ".py", ".js", ".ts", ".java", ".cpp", ".c", ".h", ".hpp",
+      ".go", ".rs", ".jsx", ".tsx", ".html", ".css", ".php",
+      ".swift", ".cs", ".rb", ".kt", ".scala", ".sh", ".ps1",
+      ".sql", ".r", ".m", ".mm", ".lua", ".pl", ".ex", ".exs",
+      ".zig", ".nim", ".dart", ".vue", ".svelte"
+    ],
+    "doc_extensions": [
+      ".md", ".txt", ".rst", ".json", ".yaml", ".yml"
+    ],
+    "excluded_dirs": [
+      ".venv", "venv", "env", "virtualenv",
+      "node_modules", "bower_components", "jspm_packages",
+      ".git", ".svn", ".hg", ".bzr",
+      "__pycache__", ".pytest_cache", ".mypy_cache",
+      ".next", ".nuxt", ".output",
+      "dist", "build", "out", "bin", "obj", "target",
+      "coverage", "htmlcov", ".nyc_output", ".tox",
+      ".vs", ".vscode", ".idea",
+      "packages/*/dist", "packages/*/build",
+      ".terraform", ".serverless"
+    ],
+    "excluded_files": [
+      "yarn.lock", "pnpm-lock.yaml", "package-lock.json",
+      "npm-shrinkwrap.json", "poetry.lock", "Pipfile.lock",
+      "Cargo.lock", "composer.lock", "uv.lock",
+      ".DS_Store", "Thumbs.db", "desktop.ini",
+      ".env", ".env.*",
+      ".gitignore", ".gitattributes", ".gitmodules",
+      ".prettierrc", ".eslintrc", ".eslintignore",
+      ".editorconfig", ".pylintrc", ".flake8",
+      "*.min.js", "*.min.css", "*.bundle.js", "*.bundle.css",
+      "*.map",
+      "*.gz", "*.zip", "*.tar", "*.tgz", "*.rar", "*.7z",
+      "*.iso", "*.dmg", "*.img",
+      "*.exe", "*.dll", "*.so", "*.dylib",
+      "*.o", "*.obj", "*.a", "*.lib",
+      "*.jar", "*.war", "*.ear", "*.class",
+      "*.pyc", "*.pyd", "*.pyo",
+      "*.egg", "*.egg-info", "*.dist-info",
+      "*.whl", "*.msi", "*.msix"
+    ]
+  }
+}
