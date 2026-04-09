@@ -17,6 +17,7 @@ Analyze the codebase in `${input:folderPath:Enter the absolute path to the local
 2. **Scan** the folder at `${input:folderPath}` — build a file tree respecting the filters, read the README, identify the tech stack. **Scan both code files AND markup/template files** (XAML, HTML, Vue, etc.) to understand UI structure, controls, and data bindings.
 3. **Plan** the wiki structure: scale page count to project complexity (6–10 for small, 12–20 for medium, 18–30 for large projects). Create separate pages per major feature area rather than one summary page. Use subsections for hierarchy.
 4. **Generate** content for each page by reading **both implementation files and markup files**. Include Mermaid diagrams (at least one per page), evidence-backed tables, UI control inventories, user workflow sequences, and code citations.
-5. **Write** the complete wiki JSON to `${input:folderPath}/output/wiki-data.json`.
+5. **Write** the complete wiki JSON to `${input:folderPath}/output/wiki-data.json`. Before writing, verify the JSON matches the **strict schema** (root keys: `metadata` + `structure`; pages inside `structure.pages`; every section has an `id`; every page has `relatedPages`).
+6. **Validate** by running: `node scripts/validate-wiki-data.js "${input:folderPath}/output/wiki-data.json" --fix` — if errors are reported, fix and re-write.
 
 Follow the full workflow defined in the codewiki agent. Generate all pages before writing the output file.

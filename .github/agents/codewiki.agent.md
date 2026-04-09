@@ -245,31 +245,73 @@ For each page, read the relevant source files listed in `filePaths` (use `read_f
 ### Step 4: Write Output
 
 1. Assemble the complete JSON (structure + all page content).
-2. Write it to `output/wiki-data.json` in the project folder using `create_file`.
-3. Report the summary: total pages generated, sections, and file path.
+2. **Self-validate** the JSON against the schema checklist below BEFORE writing. Fix any violations.
+3. Write it to `output/wiki-data.json` in the project folder using `create_file`.
+4. Run the validation script: `node scripts/validate-wiki-data.js <project-folder>/output/wiki-data.json`
+5. If validation fails, read the error output, fix the JSON, and re-write.
+6. Report the summary: total pages generated, sections, and file path.
 
-## Output Format
+## Output Format — STRICT SCHEMA
 
-The final `wiki-data.json` must be valid JSON matching the `WikiData` TypeScript interface:
+The final `wiki-data.json` MUST be valid JSON matching these TypeScript interfaces exactly. The frontend will crash at runtime if the schema is wrong.
 
 ```typescript
+interface WikiPage {
+  id: string;              // kebab-case unique identifier
+  title: string;           // human-readable page title
+  content: string;         // full Markdown content
+  filePaths: string[];     // relevant source file paths (relative)
+  importance: 'high' | 'medium' | 'low';
+  relatedPages: string[];  // IDs of related pages (can be empty [])
+  parentId?: string;       // optional: ID of parent section
+  isSection?: boolean;     // optional: true if this is a section node
+  children?: string[];     // optional: child page IDs
+}
+
+interface WikiSection {
+  id: string;              // unique section identifier
+  title: string;           // section display name
+  pages: string[];         // page IDs belonging to this section
+  subsections?: string[];  // optional: nested section IDs
+}
+
 interface WikiData {
   metadata: {
-    source: string;
-    generated_at: string;
-    page_count: number;
-    generator: string;
+    source: string;        // absolute path to analyzed folder
+    generated_at: string;  // ISO 8601 timestamp
+    page_count: number;    // total number of pages
+    generator: string;     // always "codewiki-local-agent"
   };
   structure: {
-    id: string;
-    title: string;
-    description: string;
-    pages: WikiPage[];
-    sections: WikiSection[];
-    rootSections: string[];
+    id: string;            // wiki identifier (e.g. "my-project-wiki")
+    title: string;         // wiki title (e.g. "My Project Wiki")
+    description: string;   // 1-2 sentence project summary
+    pages: WikiPage[];     // ALL pages with full content
+    sections: WikiSection[];  // ALL sections
+    rootSections: string[];   // top-level section IDs (order = display order)
   };
 }
 ```
+
+### Schema Compliance Checklist (verify before writing)
+
+> **Check every item before calling `create_file`.** Violations WILL cause a runtime crash.
+
+- [ ] Root object has exactly two keys: `metadata` and `structure`
+- [ ] `metadata.source` is the folder path string
+- [ ] `metadata.generated_at` is an ISO 8601 string
+- [ ] `metadata.page_count` equals `structure.pages.length`
+- [ ] `metadata.generator` is `"codewiki-local-agent"`
+- [ ] `structure.id` is a non-empty string
+- [ ] `structure.title` is a non-empty string
+- [ ] `structure.description` is a non-empty string
+- [ ] `structure.pages` is an array — NOT at the root level, MUST be inside `structure`
+- [ ] Every page has `id`, `title`, `content` (non-empty string), `filePaths` (array), `importance` ("high"|"medium"|"low"), `relatedPages` (array, can be `[]`)
+- [ ] `structure.sections` is an array — every section has `id`, `title`, `pages` (array of page IDs)
+- [ ] `structure.rootSections` is an array of section ID strings
+- [ ] Pages are NOT placed at the JSON root — they MUST be inside `structure.pages`
+- [ ] There is NO `projectName` key at the root (use `structure.title` instead)
+- [ ] There is NO `generatedAt` key at the root (use `metadata.generated_at` instead)
 
 ## Important Rules
 
