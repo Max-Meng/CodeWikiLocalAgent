@@ -14,9 +14,9 @@ Analyze the codebase in `${input:folderPath:Enter the absolute path to the local
 ## Instructions
 
 1. **Load filters** from `config/scan-filters.json`. If the user provided include/exclude overrides above, apply them.
-2. **Scan** the folder at `${input:folderPath}` — build a file tree respecting the filters, read the README, identify the tech stack.
-3. **Plan** the wiki structure: 8–12 pages grouped into logical sections.
-4. **Generate** content for each page by reading the relevant source files and writing detailed Markdown with Mermaid diagrams and code citations.
+2. **Scan** the folder at `${input:folderPath}` — build a file tree respecting the filters, read the README, identify the tech stack. **Scan both code files AND markup/template files** (XAML, HTML, Vue, etc.) to understand UI structure, controls, and data bindings.
+3. **Plan** the wiki structure: scale page count to project complexity (6–10 for small, 12–20 for medium, 18–30 for large projects). Create separate pages per major feature area rather than one summary page. Use subsections for hierarchy.
+4. **Generate** content for each page by reading **both implementation files and markup files**. Include Mermaid diagrams (at least one per page), evidence-backed tables, UI control inventories, user workflow sequences, and code citations.
 5. **Write** the complete wiki JSON to `${input:folderPath}/output/wiki-data.json`.
 
 Follow the full workflow defined in the codewiki agent. Generate all pages before writing the output file.

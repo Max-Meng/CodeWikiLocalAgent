@@ -5,7 +5,9 @@
       ".go", ".rs", ".jsx", ".tsx", ".html", ".css", ".php",
       ".swift", ".cs", ".rb", ".kt", ".scala", ".sh", ".ps1",
       ".sql", ".r", ".m", ".mm", ".lua", ".pl", ".ex", ".exs",
-      ".zig", ".nim", ".dart", ".vue", ".svelte"
+      ".zig", ".nim", ".dart", ".vue", ".svelte",
+      ".xaml", ".xml", ".csproj", ".sln", ".fsproj", ".vbproj",
+      ".props", ".targets", ".razor", ".cshtml", ".proto"
     ],
     "doc_extensions": [
       ".md", ".txt", ".rst", ".json", ".yaml", ".yml"
