@@ -34,3 +34,6 @@ next-env.d.ts
 
 # generated wiki output
 /output/
+
+# wiki data in public (generated, not source-controlled)
+/public/wiki-data.json
