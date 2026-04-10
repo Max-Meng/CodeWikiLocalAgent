@@ -4,31 +4,48 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  --background: #f8f4e6;
-  --foreground: #333333;
-  --shadow-color: rgba(0, 0, 0, 0.05);
-  --accent-primary: #9b7cb9;
-  --accent-secondary: #d7c4bb;
-  --border-color: #e0d8c8;
-  --card-bg: #fffaf0;
-  --highlight: #e8927c;
-  --muted: #a59e8c;
-  --link-color: #7c5aa0;
+  /* Microsoft Azure / Fluent UI color palette - light mode */
+  --background: #f3f2f1; /* Fluent neutral lighter */
+  --foreground: #323130; /* Fluent neutral primary text */
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --accent-primary: #0078d4; /* Azure Blue - primary brand */
+  --accent-secondary: #deecf9; /* Azure Blue tint 30 */
+  --accent-dark: #005a9e; /* Azure Blue shade 20 */
+  --border-color: #edebe9; /* Fluent neutral border */
+  --card-bg: #ffffff; /* White surface */
+  --highlight: #00bcf2; /* Azure Cyan */
+  --muted: #605e5c; /* Fluent neutral secondary text */
+  --link-color: #0078d4; /* Azure Blue links */
+  --success: #107c10; /* Fluent green */
+  --warning: #ff8c00; /* Fluent warning orange */
+  --danger: #d13438; /* Fluent red */
+  --nav-bg: #f8f8f8; /* Azure portal nav background */
+  --top-bar-bg: #0078d4; /* Azure portal top bar */
+  --top-bar-text: #ffffff;
 }
 
 html[data-theme='dark'] {
-  --background: #1a1a1a;
-  --foreground: #f0f0f0;
-  --shadow-color: rgba(0, 0, 0, 0.2);
-  --accent-primary: #9370db;
-  --accent-secondary: #5d4037;
-  --border-color: #2c2c2c;
-  --card-bg: #222222;
-  --highlight: #e57373;
-  --muted: #8c8c8c;
-  --link-color: #b19cd9;
+  /* Microsoft Azure / Fluent UI color palette - dark mode */
+  --background: #1b1a19; /* Fluent dark background */
+  --foreground: #f3f2f1; /* Fluent light text on dark */
+  --shadow-color: rgba(0, 0, 0, 0.36);
+  --accent-primary: #2b88d8; /* Azure Blue tint for dark */
+  --accent-secondary: #004578; /* Azure Blue shade 30 */
+  --accent-dark: #6cb8f6; /* Lighter blue for contrast */
+  --border-color: #3b3a39; /* Fluent dark border */
+  --card-bg: #252423; /* Fluent dark surface */
+  --highlight: #50e6ff; /* Azure Light Blue */
+  --muted: #a19f9d; /* Fluent dark secondary text */
+  --link-color: #6cb8f6; /* Lighter link for dark */
+  --success: #92c353; /* Fluent green light */
+  --warning: #ffc83d; /* Fluent warning light */
+  --danger: #f1707b; /* Fluent red light */
+  --nav-bg: #292827; /* Dark nav */
+  --top-bar-bg: #1b1a19; /* Dark top bar */
+  --top-bar-text: #f3f2f1;
 }
 
+/* Fix for unreadable <select> options in Chrome's dark mode */
 [data-theme="dark"] select option {
   background: var(--background);
 }
@@ -36,70 +53,297 @@ html[data-theme='dark'] {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Noto Sans JP', sans-serif;
-  --font-mono: 'Geist Mono', monospace;
-  --font-geist-sans: 'Noto Sans JP', sans-serif;
-  --font-geist-mono: 'Geist Mono', monospace;
-  --font-serif-jp: 'Noto Serif JP', serif;
+  /* Segoe UI first — Microsoft standard font, then system fallbacks */
+  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans CJK JP", "Hiragino Sans", Meiryo, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
-}
-
-.shadow-custom {
-  box-shadow: 0 4px 8px -2px var(--shadow-color);
-}
-
-.paper-texture {
-  background-color: var(--card-bg);
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23e0d8c8' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-html[data-theme='dark'] .paper-texture {
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23333333' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-.btn-japanese {
-  background-color: var(--accent-primary);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  padding: 0.5rem 1.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  position: relative;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
 
-.btn-japanese:hover {
-  background-color: var(--highlight);
+/* Custom scrollbar styles for project list */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
 
-.input-japanese {
-  background-color: transparent;
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
+}
+
+/* Custom shadow styles - Fluent UI depth tokens */
+.shadow-custom {
+  box-shadow: 0 1.6px 3.6px 0 var(--shadow-color), 0 0.3px 0.9px 0 var(--shadow-color);
+}
+
+/* Fluent depth-8 for elevated surfaces */
+.shadow-depth-8 {
+  box-shadow: 0 3.2px 7.2px 0 var(--shadow-color), 0 0.6px 1.8px 0 var(--shadow-color);
+}
+
+/* Clean surface */
+.paper-texture {
+  background-color: var(--background);
+  background-image: none;
+}
+
+/* Dark mode clean surface */
+html[data-theme='dark'] .paper-texture {
+  background-image: none;
+}
+
+/* Azure Portal primary button */
+.btn-azure, .btn-japanese {
+  background-color: var(--accent-primary);
+  color: white;
+  border: 1px solid var(--accent-primary);
+  border-radius: 2px;
+  padding: 6px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  transition: background-color 0.1s ease, border-color 0.1s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.btn-azure:hover, .btn-japanese:hover {
+  background-color: var(--accent-dark, #005a9e);
+  border-color: var(--accent-dark, #005a9e);
+}
+
+.btn-azure:active, .btn-japanese:active {
+  background-color: #004578;
+  border-color: #004578;
+}
+
+.btn-azure:disabled, .btn-japanese:disabled {
+  background-color: #c8c6c4;
+  border-color: #c8c6c4;
+  color: #a19f9d;
+  cursor: not-allowed;
+}
+
+/* Azure Portal secondary/outline button */
+.btn-azure-secondary {
+  background-color: var(--card-bg);
+  color: var(--foreground);
   border: 1px solid var(--border-color);
-  border-radius: 0.25rem;
-  padding: 0.5rem 1rem;
-  transition: all 0.3s ease;
+  border-radius: 2px;
+  padding: 6px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  transition: background-color 0.1s ease;
+  cursor: pointer;
 }
 
-.input-japanese:focus {
+.btn-azure-secondary:hover {
+  background-color: var(--nav-bg);
+}
+
+/* Azure Portal input style */
+.input-azure, .input-japanese {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  transition: border-color 0.1s ease;
+}
+
+.input-azure:focus, .input-japanese:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(155, 124, 185, 0.2);
   outline: none;
 }
 
-.card-japanese {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  overflow: hidden;
-  transition: all 0.3s ease;
+.input-azure:hover, .input-japanese:hover {
+  border-color: var(--muted);
 }
 
-.card-japanese:hover {
-  box-shadow: 0 4px 12px var(--shadow-color);
+/* Azure Portal card style */
+.card-azure, .card-japanese {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: box-shadow 0.1s ease;
+}
+
+.card-azure:hover, .card-japanese:hover {
+  box-shadow: 0 3.2px 7.2px 0 var(--shadow-color), 0 0.6px 1.8px 0 var(--shadow-color);
+}
+
+/* Azure left-accent indicator for active items */
+.azure-active-indicator {
+  border-left: 2px solid var(--accent-primary);
+}
+
+/* Azure Portal top bar */
+.azure-top-bar {
+  background-color: var(--top-bar-bg);
+  color: var(--top-bar-text);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Azure Portal breadcrumb */
+.azure-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.azure-breadcrumb a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.azure-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.azure-breadcrumb .separator {
+  color: var(--muted);
+  margin: 0 2px;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Mermaid diagram styles - Azure color palette */
+.mermaid-diagram {
+  /* Prevent text clipping inside nodes */
+  & foreignObject {
+    overflow: visible;
+  }
+  & .nodeLabel {
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  /* Light mode node styles */
+  & .node rect, & .node circle, & .node ellipse, & .node polygon, & .node path {
+    fill: var(--card-bg);
+    stroke: var(--accent-primary);
+    stroke-width: 1px;
+  }
+  & .edgePath .path {
+    stroke: var(--accent-primary);
+    stroke-width: 1.5px;
+  }
+  & .edgeLabel {
+    background-color: transparent;
+    color: var(--foreground);
+  }
+  & .edgeLabel p {
+    background-color: transparent !important;
+  }
+  & .label {
+    color: var(--foreground);
+  }
+  & .cluster rect {
+    fill: var(--card-bg);
+    stroke: var(--accent-primary);
+    stroke-width: 1px;
+  }
+  /* Sequence diagram */
+  & .actor {
+    fill: var(--card-bg);
+    stroke: var(--accent-primary);
+    stroke-width: 1px;
+  }
+  & text.actor, & .messageText, & .noteText {
+    fill: var(--foreground);
+    stroke: none;
+  }
+  & .messageLine0, & .messageLine1 {
+    stroke: var(--accent-primary);
+  }
+  /* General text */
+  & text {
+    fill: var(--muted) !important;
+  }
+  /* Clickable elements */
+  & .clickable {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  & .clickable:hover {
+    transform: scale(1.03);
+    filter: brightness(0.95);
+  }
+}
+
+/* Dark mode mermaid overrides */
+html[data-theme='dark'] .mermaid-diagram {
+  & .node rect, & .node circle, & .node ellipse, & .node polygon, & .node path,
+  & .cluster rect, & .actor {
+    fill: var(--card-bg);
+    stroke: var(--accent-primary);
+  }
+  & .edgePath .path, & .flowchart-link, & .messageLine0, & .messageLine1 {
+    stroke: var(--accent-primary);
+    stroke-width: 1.5px;
+  }
+  & .edgeLabel, & .label, & text.actor, & .messageText, & .noteText,
+  & #sequenceNumber, & text.sequenceText, & text.loopText, & text.loopText tspan {
+    color: var(--foreground);
+    fill: var(--foreground) !important;
+  }
+  & text {
+    fill: var(--foreground) !important;
+  }
+  /* Text readability enhancement */
+  & .messageText, & text.sequenceText {
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 }

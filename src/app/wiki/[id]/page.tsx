@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import WikiTreeView from '@/components/WikiTreeView';
 import Markdown from '@/components/Markdown';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/components/theme-toggle';
 import type { WikiData } from '@/types/wiki';
 
 function generateMarkdownExport(wikiData: WikiData): string {
