@@ -10,7 +10,7 @@
  *                      and registers in public/wiki-registry.json for the home page.
  *                      Without --name, copies to public/wiki-data.json (legacy single-wiki mode).
  * 
- * If no path is given, reads from ./output/wiki-data.json
+ * If no path is given, looks for the most recently modified file in ./public/wikis/
  */
 
 const fs = require('fs');
@@ -23,8 +23,23 @@ const nameIdx = args.indexOf('--name');
 const projectId = nameIdx !== -1 && args[nameIdx + 1] ? args[nameIdx + 1] : null;
 
 // First positional arg that isn't a flag or flag-value
-const inputPath = args.find((a, i) => !a.startsWith('--') && (i === 0 || args[i - 1] !== '--name'))
-  || path.join(__dirname, '..', 'output', 'wiki-data.json');
+let inputPath = args.find((a, i) => !a.startsWith('--') && (i === 0 || args[i - 1] !== '--name'));
+if (!inputPath) {
+  // Default: find most recently modified JSON in public/wikis/
+  const wikisDir = path.join(__dirname, '..', 'public', 'wikis');
+  if (fs.existsSync(wikisDir)) {
+    const files = fs.readdirSync(wikisDir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => ({ name: f, mtime: fs.statSync(path.join(wikisDir, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    if (files.length > 0) {
+      inputPath = path.join(wikisDir, files[0].name);
+    }
+  }
+  if (!inputPath) {
+    inputPath = path.join(__dirname, '..', 'output', 'wiki-data.json');
+  }
+}
 
 const publicDir = path.join(__dirname, '..', 'public');
 const outputPath = projectId
@@ -217,8 +232,16 @@ try {
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
   }
-  fs.copyFileSync(inputPath, outputPath);
-  console.log(`Copied to ${outputPath}`);
+
+  // Skip copy if input and output are the same file
+  const resolvedInput = path.resolve(inputPath);
+  const resolvedOutput = path.resolve(outputPath);
+  if (resolvedInput !== resolvedOutput) {
+    fs.copyFileSync(inputPath, outputPath);
+    console.log(`Copied to ${outputPath}`);
+  } else {
+    console.log(`Output is already at ${outputPath}`);
+  }
 
   // Multi-wiki mode: register in wiki-registry.json
   if (projectId) {

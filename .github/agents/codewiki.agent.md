@@ -246,10 +246,14 @@ For each page, read the relevant source files listed in `filePaths` (use `read_f
 
 1. Assemble the complete JSON (structure + all page content).
 2. **Self-validate** the JSON against the schema checklist below BEFORE writing. Fix any violations.
-3. Write it to `output/wiki-data.json` in the project folder using `create_file`.
-4. Run the validation script: `node scripts/validate-wiki-data.js <project-folder>/output/wiki-data.json`
-5. If validation fails, read the error output, fix the JSON, and re-write.
-6. Report the summary: total pages generated, sections, and file path.
+3. Derive a project ID from the folder name: take the last path segment, lowercase it, and replace non-alphanumeric characters with hyphens (e.g., `C:\Code\MyProject` → `myproject`).
+4. Write it to `public/wikis/<project-id>.json` in the **CodeWiki Local Agent project folder** using `create_file`. Do NOT create files inside the analyzed codebase folder.
+5. Run the validation script with `--name` to register the project on the home page:
+   ```
+   node scripts/validate-wiki-data.js public/wikis/<project-id>.json --fix --name <project-id>
+   ```
+6. If validation fails, read the error output, fix the JSON, and re-write.
+7. Report the summary: total pages generated, sections, project ID, and file path.
 
 ## Output Format — STRICT SCHEMA
 
