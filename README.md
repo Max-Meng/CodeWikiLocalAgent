@@ -7,7 +7,7 @@ AI-powered code wiki generator for any local codebase, powered by VS Code Copilo
 CodeWiki Local Agent generates a structured, interactive wiki website from any local codebase. It consists of two parts:
 
 1. **VS Code Copilot Agent** (`@codewiki`) — Analyzes source code and generates a `wiki-data.json` file containing the wiki structure and page content with Mermaid diagrams and source citations.
-2. **Next.js Frontend** — Renders the wiki as a deployable website with tree navigation, dark mode, Mermaid diagrams, syntax-highlighted code blocks, and Markdown/JSON export.
+2. **Next.js Frontend** — Renders wikis as a deployable website with a **multi-project home page**, tree navigation, dark mode, Mermaid diagrams, syntax-highlighted code blocks, and Markdown/JSON export.
 
 ## Architecture
 
@@ -24,9 +24,24 @@ CodeWiki Local Agent generates a structured, interactive wiki website from any l
            │ output/wiki-data.json
            ▼
 ┌─────────────────────────────┐
+│  validate-wiki-data.js      │
+│  --fix --name <project-id>  │
+│                             │
+│  • Auto-fix schema drift    │
+│  • Copy to public/wikis/    │
+│  • Register in home catalog │
+└──────────┬──────────────────┘
+           │ public/wikis/<id>.json
+           │ public/wiki-registry.json
+           ▼
+┌─────────────────────────────┐
 │  Next.js Frontend           │
 │  (port 3000)                │
 │                             │
+│  /         → Home (catalog) │
+│  /wiki/:id → Wiki viewer    │
+│                             │
+│  • Multi-project home page  │
 │  • Wiki tree navigation     │
 │  • Markdown rendering       │
 │  • Mermaid diagrams         │
@@ -79,13 +94,13 @@ There are two ways to invoke the agent — use whichever you prefer.
 
 > **Output location**: The wiki JSON is written to `<target-folder>/output/wiki-data.json` by default. You can also ask the agent to write it to a custom path.
 
-### Step 2: Validate and Preview Locally
+### Step 2: Publish and Preview Locally
 
 ```powershell
 # From the CodeWiki Local Agent project folder:
 
-# Validate the generated JSON and copy it to public/ for the frontend
-node scripts/validate-wiki-data.js C:\MyProject\output\wiki-data.json --fix
+# Validate, auto-fix, and publish as a named project on the home page
+node scripts/validate-wiki-data.js C:\MyProject\output\wiki-data.json --fix --name my-project
 
 # Install dependencies (first time only)
 npm install
@@ -94,18 +109,31 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 to view and browse the wiki.
+Open http://localhost:3000 to see the home page with your project card. Click it to open the wiki viewer at `/wiki/my-project`.
 
 > **Tip**: The `--fix` flag automatically repairs common schema issues (missing metadata, sections without IDs, etc.) if the LLM output drifted from the expected format.
+
+> **Multi-wiki**: Run the validate command with a different `--name` for each project. Each call upserts into `public/wiki-registry.json`, so the home page accumulates all your wikis.
+
+```powershell
+# Add more wikis — each appears as a card on the home page
+node scripts/validate-wiki-data.js C:\OtherProject\output\wiki-data.json --fix --name other-project
+```
 
 ### Step 3: Production Build
 
 ```powershell
-# All-in-one: validate + build
-.\scripts\Build-WikiSite.ps1 -WikiDataPath C:\MyProject\output\wiki-data.json
+# Build for production (wiki data must already be published to public/ via Step 2)
+npm run build
 
-# Then start the production server
+# Start the production server
 npm start
+```
+
+Or use the all-in-one build script:
+
+```powershell
+.\scripts\Build-WikiSite.ps1 -WikiDataPath C:\MyProject\output\wiki-data.json
 ```
 
 ---
@@ -135,9 +163,13 @@ az webapp create --resource-group codewiki-rg --plan codewiki-plan --name my-cod
 az webapp config set --resource-group codewiki-rg --name my-codewiki --startup-file "node server.js"
 ```
 
-**Deploy** — run this whenever you regenerate wiki content:
+**Deploy** — run this whenever you regenerate wiki content or add new projects:
 
 ```powershell
+# Publish wiki(s) first (if not already done in Step 2)
+node scripts/validate-wiki-data.js C:\MyProject\output\wiki-data.json --fix --name my-project
+
+# Build and deploy in one command
 .\scripts\Build-WikiSite.ps1 `
     -WikiDataPath C:\MyProject\output\wiki-data.json `
     -Deploy `
@@ -145,7 +177,20 @@ az webapp config set --resource-group codewiki-rg --name my-codewiki --startup-f
     -AppName my-codewiki
 ```
 
-This single command validates the JSON, builds the Next.js standalone output, packages it as a ZIP, and deploys via `az webapp deploy`.
+Or deploy manually:
+
+```powershell
+# Build
+npm run build
+
+# Package standalone output (includes public/wikis/ and wiki-registry.json)
+Copy-Item -Path "public" -Destination ".next\standalone\public" -Recurse -Force
+Copy-Item -Path ".next\static" -Destination ".next\standalone\.next\static" -Recurse -Force
+Compress-Archive -Path ".next\standalone\*" -DestinationPath ".next-deploy.zip" -Force
+
+# Deploy
+az webapp deploy --resource-group codewiki-rg --name my-codewiki --src-path ".next-deploy.zip" --type zip
+```
 
 Your wiki will be live at `https://my-codewiki.azurewebsites.net`.
 
@@ -154,8 +199,8 @@ Your wiki will be live at `https://my-codewiki.azurewebsites.net`.
 **Build and push to Azure Container Registry:**
 
 ```powershell
-# Make sure wiki-data.json is in public/ before building
-node scripts/validate-wiki-data.js C:\MyProject\output\wiki-data.json --fix
+# Make sure wiki(s) are published to public/ before building
+node scripts/validate-wiki-data.js C:\MyProject\output\wiki-data.json --fix --name my-project
 
 # Build and push using ACR Tasks (no local Docker needed)
 az acr build --registry <ACR_NAME> --image codewiki-site:latest .
@@ -196,8 +241,11 @@ scripts/
 src/
   app/
     layout.tsx                # Root layout with theme provider
-    page.tsx                  # Main wiki viewer page
+    page.tsx                  # Home page — multi-project catalog
     globals.css               # Theme & styling
+    wiki/
+      [id]/
+        page.tsx              # Wiki viewer for a single project
   components/
     Markdown.tsx              # Markdown renderer with Mermaid + syntax highlighting
     Mermaid.tsx               # Mermaid diagram renderer with fullscreen
@@ -207,10 +255,15 @@ src/
     wiki/
       wikipage.tsx            # WikiPage interface
       wikistructure.tsx       # WikiStructure + WikiData interfaces
+      wikiregistry.ts         # WikiProject + WikiRegistry interfaces
       index.ts                # Re-exports
 output/                       # Generated wiki data (gitignored)
 public/
-  wiki-data.json              # Wiki data served to frontend (gitignored, copied from output/)
+  wikis/                      # Per-project wiki JSON files (gitignored)
+    snappy.json
+    my-project.json
+  wiki-registry.json          # Project catalog for the home page (gitignored)
+  wiki-data.json              # Legacy single-wiki fallback (gitignored)
 Dockerfile                    # Multi-stage Node.js Docker build
 docker-compose.yml            # Docker Compose configuration
 ```
@@ -261,11 +314,12 @@ The `wiki-data.json` file follows this structure:
 | LLM Provider | Google/OpenAI/Azure/Ollama/etc. | VS Code Copilot (built-in) |
 | Input | Remote repo URL (GitHub/GitLab/Bitbucket) | Local folder |
 | Backend | Python FastAPI + FAISS embeddings | None (agent generates static JSON) |
+| Multi-Project Home | Yes (project cards) | Yes (project cards with search) |
 | Q&A Chatbot | Yes (RAG with embeddings) | No (static wiki only) |
 | Deep Research | Yes (multi-turn) | No |
 | Wiki Generation | Streaming via WebSocket | Batch via Copilot Agent |
 | Frontend | Next.js (dynamic, API-driven) | Next.js (static JSON-driven) |
-| Deployment | Docker (Python + Node.js) | Docker (Node.js only) |
+| Deployment | Docker (Python + Node.js) | Docker (Node.js only) or ZIP deploy |
 | Auth | Optional repo tokens | N/A (local files) |
 
 ## License
