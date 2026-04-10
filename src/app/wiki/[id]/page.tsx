@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import WikiTreeView from '@/components/WikiTreeView';
 import Markdown from '@/components/Markdown';
 import ThemeToggle from '@/components/theme-toggle';
+import Ask from '@/components/Ask';
+import { FaComments, FaTimes, FaSearch } from 'react-icons/fa';
 import type { WikiData } from '@/types/wiki';
+import type { RepoInfo } from '@/types/repoinfo';
 
 function generateMarkdownExport(wikiData: WikiData): string {
   const lines: string[] = [];
@@ -60,6 +63,30 @@ export default function WikiPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Build a RepoInfo-like object from wiki metadata for the Ask component
+  const repoInfo = useMemo<RepoInfo>(() => ({
+    owner: wikiData?.metadata?.source || wikiId,
+    repo: wikiId,
+    type: 'local',
+    token: null,
+    branch: null,
+    localPath: wikiData?.metadata?.source || null,
+    repoUrl: null,
+  }), [wikiData, wikiId]);
+
+  // Search within wiki pages
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !wikiData) return null;
+    const q = searchQuery.toLowerCase();
+    return wikiData.structure.pages.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      (p.content && p.content.toLowerCase().includes(q))
+    );
+  }, [searchQuery, wikiData]);
 
   useEffect(() => {
     async function loadWiki() {
@@ -132,9 +159,9 @@ export default function WikiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="h-screen flex flex-col bg-[var(--background)]">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[var(--card-bg)] border-b border-[var(--border-color)] shadow-custom">
+      <header className="sticky top-0 z-40 bg-[var(--card-bg)] border-b border-[var(--border-color)] shadow-custom flex-shrink-0">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link href="/" className="p-2 rounded-md hover:bg-[var(--background)] transition-colors" title="Back to all projects">
@@ -159,7 +186,7 @@ export default function WikiPage() {
               <button className="p-2 rounded-md border border-[var(--border-color)] hover:bg-[var(--accent-primary)]/10 transition-colors text-sm text-[var(--foreground)]">
                 Export
               </button>
-              <div className="absolute right-0 mt-1 w-40 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-md shadow-custom hidden group-hover:block">
+              <div className="absolute right-0 mt-1 w-40 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-md shadow-custom hidden group-hover:block z-50">
                 <button
                   className="w-full text-left px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background)]"
                   onClick={() => {
@@ -192,12 +219,51 @@ export default function WikiPage() {
         </div>
       </header>
 
-      <div className="flex">
+      {/* Body: sidebar + content + chat */}
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {sidebarOpen && (
-          <aside className="w-72 min-h-[calc(100vh-80px)] bg-[var(--card-bg)] border-r border-[var(--border-color)] p-4 overflow-y-auto sticky top-[80px]">
+          <aside className="w-72 flex-shrink-0 bg-[var(--card-bg)] border-r border-[var(--border-color)] p-4 overflow-y-auto">
+            {/* Search */}
             <div className="mb-4">
-              <h2 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Pages</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Pages</h2>
+                <button
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="p-1.5 text-[var(--muted)] hover:text-[var(--accent-primary)] transition-colors rounded-md hover:bg-[var(--background)]"
+                  title="Search pages (Ctrl+K)"
+                >
+                  <FaSearch className="text-xs" />
+                </button>
+              </div>
+              {isSearchOpen && (
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search pages..."
+                    className="w-full px-3 py-1.5 text-xs bg-[var(--background)] text-[var(--foreground)] border border-[var(--border-color)] rounded-md focus:outline-none focus:border-[var(--accent-primary)] placeholder:text-[var(--muted)]"
+                    autoFocus
+                  />
+                  {searchResults && searchResults.length > 0 && (
+                    <div className="mt-1 max-h-40 overflow-y-auto">
+                      {searchResults.map(page => (
+                        <button
+                          key={page.id}
+                          onClick={() => { handlePageSelect(page.id); setSearchQuery(''); setIsSearchOpen(false); }}
+                          className="w-full text-left px-3 py-1.5 text-xs text-[var(--foreground)] hover:bg-[var(--accent-primary)]/10 rounded truncate"
+                        >
+                          {page.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchResults && searchResults.length === 0 && searchQuery.trim() && (
+                    <p className="mt-1 text-xs text-[var(--muted)] px-3">No pages found</p>
+                  )}
+                </div>
+              )}
             </div>
             <WikiTreeView
               wikiStructure={wikiData.structure}
@@ -208,10 +274,10 @@ export default function WikiPage() {
         )}
 
         {/* Main content */}
-        <main className={`flex-1 ${sidebarOpen ? 'max-w-[calc(100vw-18rem)]' : 'max-w-full'}`}>
+        <main className={`flex-1 overflow-y-auto transition-all duration-300 ${isChatPanelOpen ? '' : ''}`}>
           {currentPage ? (
             <div className="max-w-4xl mx-auto px-6 py-8">
-              {/* Page navigation breadcrumb */}
+              {/* File paths */}
               {currentPage.filePaths.length > 0 && (
                 <div className="mb-4 flex flex-wrap gap-1">
                   {currentPage.filePaths.slice(0, 5).map((fp, i) => (
@@ -260,7 +326,44 @@ export default function WikiPage() {
             </div>
           )}
         </main>
+
+        {/* Chat panel */}
+        {isChatPanelOpen && (
+          <div className="w-full lg:w-[400px] flex-shrink-0 h-full bg-[var(--card-bg)] border-l border-[var(--border-color)] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-3 border-b border-[var(--border-color)] bg-[var(--background)]/50">
+              <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <FaComments className="text-[var(--accent-primary)]" />
+                Ask about this wiki
+              </h3>
+              <button
+                onClick={() => setIsChatPanelOpen(false)}
+                className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors p-1.5 rounded-md hover:bg-[var(--background)]"
+                aria-label="Close chat"
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <Ask
+                repoInfo={repoInfo}
+                language="en"
+                isVisible={isChatPanelOpen}
+              />
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Floating chat button */}
+      {!isChatPanelOpen && (
+        <button
+          onClick={() => setIsChatPanelOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--accent-primary)] text-white shadow-lg flex items-center justify-center hover:bg-[var(--accent-primary)]/90 transition-all z-50"
+          aria-label="Ask about this wiki"
+        >
+          <FaComments className="text-xl" />
+        </button>
+      )}
     </div>
   );
 }
