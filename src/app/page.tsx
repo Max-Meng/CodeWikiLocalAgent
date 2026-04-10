@@ -182,7 +182,7 @@ function ProjectCard({ project }: { project: WikiProject }) {
     <Link href={`/wiki/${project.id}`} className="block">
       <div className="card-japanese p-5 hover:shadow-lg hover:border-[var(--accent-primary)] transition-all cursor-pointer h-full">
         <h3 className="text-base font-bold text-[var(--link-color)] mb-2 hover:underline">
-          {project.owner}/{project.name}
+          {project.owner ? `${project.owner}/` : ''}{project.name}
         </h3>
         {project.description && (
           <p className="text-xs text-[var(--muted)] mb-3 line-clamp-2">{project.description}</p>
@@ -212,7 +212,7 @@ function ProjectListItem({ project }: { project: WikiProject }) {
       <div className="card-japanese p-4 hover:shadow-lg hover:border-[var(--accent-primary)] transition-all cursor-pointer flex items-center gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-[var(--link-color)] hover:underline truncate">
-            {project.owner}/{project.name}
+            {project.owner ? `${project.owner}/` : ''}{project.name}
           </h3>
           {project.description && (
             <p className="text-xs text-[var(--muted)] truncate mt-0.5">{project.description}</p>
