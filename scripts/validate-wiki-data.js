@@ -2,7 +2,13 @@
  * Validates and optionally transforms wiki-data.json for the frontend.
  * 
  * Usage:
- *   node scripts/validate-wiki-data.js <path-to-wiki-data.json>
+ *   node scripts/validate-wiki-data.js <path-to-wiki-data.json> [--fix] [--name <project-id>]
+ * 
+ * Options:
+ *   --fix              Auto-repair common LLM drift patterns
+ *   --name <id>        Publish as a named project: copies to public/wikis/<id>.json
+ *                      and registers in public/wiki-registry.json for the home page.
+ *                      Without --name, copies to public/wiki-data.json (legacy single-wiki mode).
  * 
  * If no path is given, reads from ./output/wiki-data.json
  */
@@ -10,9 +16,21 @@
 const fs = require('fs');
 const path = require('path');
 
-const inputPath = process.argv[2] || path.join(__dirname, '..', 'output', 'wiki-data.json');
-const outputPath = path.join(__dirname, '..', 'public', 'wiki-data.json');
-const autoFix = process.argv.includes('--fix');
+// Parse args
+const args = process.argv.slice(2);
+const autoFix = args.includes('--fix');
+const nameIdx = args.indexOf('--name');
+const projectId = nameIdx !== -1 && args[nameIdx + 1] ? args[nameIdx + 1] : null;
+
+// First positional arg that isn't a flag or flag-value
+const inputPath = args.find((a, i) => !a.startsWith('--') && (i === 0 || args[i - 1] !== '--name'))
+  || path.join(__dirname, '..', 'output', 'wiki-data.json');
+
+const publicDir = path.join(__dirname, '..', 'public');
+const outputPath = projectId
+  ? path.join(publicDir, 'wikis', `${projectId}.json`)
+  : path.join(publicDir, 'wiki-data.json');
+const registryPath = path.join(publicDir, 'wiki-registry.json');
 
 /**
  * Attempt to normalize common LLM drift patterns into the correct WikiData schema.
@@ -194,15 +212,66 @@ try {
 
   console.log(`✓ Valid wiki-data.json: ${data.structure.pages.length} pages, ${data.structure.sections.length} sections`);
 
-  // Copy to public/ for the Next.js frontend
-  const publicDir = path.dirname(outputPath);
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
+  // Ensure output directory exists
+  const outDir = path.dirname(outputPath);
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
   }
   fs.copyFileSync(inputPath, outputPath);
   console.log(`Copied to ${outputPath}`);
 
+  // Multi-wiki mode: register in wiki-registry.json
+  if (projectId) {
+    // Build project entry from wiki data
+    const project = {
+      id: projectId,
+      name: data.structure.title || projectId,
+      owner: '',
+      repository: data.metadata.source || '',
+      description: data.structure.description || '',
+      tags: extractTags(data),
+      pageCount: data.structure.pages.length,
+      generatedAt: data.metadata.generated_at || new Date().toISOString(),
+      dataFile: `/wikis/${projectId}.json`,
+    };
+
+    // Load or create registry
+    let registry = { projects: [] };
+    if (fs.existsSync(registryPath)) {
+      try {
+        registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
+        if (!Array.isArray(registry.projects)) registry.projects = [];
+      } catch {
+        registry = { projects: [] };
+      }
+    }
+
+    // Upsert: replace existing entry with same id, or append
+    const idx = registry.projects.findIndex(p => p.id === projectId);
+    if (idx >= 0) {
+      registry.projects[idx] = project;
+      console.log(`Updated project "${projectId}" in wiki-registry.json`);
+    } else {
+      registry.projects.push(project);
+      console.log(`Added project "${projectId}" to wiki-registry.json`);
+    }
+
+    fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2), 'utf-8');
+    console.log(`Registry: ${registryPath} (${registry.projects.length} project(s))`);
+  }
+
 } catch (err) {
   console.error('Error:', err.message);
   process.exit(1);
+}
+
+/**
+ * Extract tags from wiki data (section titles make good tags).
+ */
+function extractTags(data) {
+  if (!data.structure || !Array.isArray(data.structure.sections)) return [];
+  return data.structure.sections
+    .map(s => s.title)
+    .filter(Boolean)
+    .slice(0, 6);
 }

@@ -37,3 +37,8 @@ next-env.d.ts
 
 # wiki data in public (generated, not source-controlled)
 /public/wiki-data.json
+/public/wikis/
+/public/wiki-registry.json
+
+# deployment artifact
+.next-deploy.zip
