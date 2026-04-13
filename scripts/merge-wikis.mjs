@@ -94,6 +94,10 @@ if (overview) {
   totalPages++;
 }
 
+// --- Configurable thresholds ---
+const THIN_PAGE_THRESHOLD = 800;  // pages with content shorter than this are "thin"
+const SECTION_MERGE_THRESHOLD = 3000;  // if total content of all pages in a section is under this, merge into one page
+
 // --- Process each group ---
 for (const group of groups) {
   const groupSectionId = `sect-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
@@ -115,38 +119,81 @@ for (const group of groups) {
       overviewPageId = struct.sections[overviewIdx].pages[0];
     }
 
-    // Add all pages from this sub-wiki
-    for (const page of struct.pages) {
-      if (page.id === overviewPageId) {
-        // Promote: rename page ID to match subsystem section ID so tree view makes section header clickable
-        allPages.push({ ...page, id: subSectionId, parentId: subSectionId });
-      } else {
-        allPages.push({ ...page, parentId: subSectionId });
+    // Promote overview page to subsystem section header
+    if (overviewPageId) {
+      const ovPage = struct.pages.find(p => p.id === overviewPageId);
+      if (ovPage) {
+        allPages.push({ ...ovPage, id: subSectionId, parentId: subSectionId });
+        totalPages++;
       }
-      totalPages++;
     }
 
-    // Build inner subsections (skip the overview section — its page is now the section header)
+    // Build inner subsections (skip the overview section)
     const innerSubsections = [];
     for (let i = 0; i < struct.sections.length; i++) {
-      if (i === overviewIdx) continue; // skip — promoted to section header
+      if (i === overviewIdx) continue;
       const section = struct.sections[i];
       const innerId = `sect-${wikiId}-${section.id}`;
-      // Remap any references to the old overview page ID within section pages
-      const remappedPages = section.pages.map(pid => pid === overviewPageId ? subSectionId : pid);
-      innerSubsections.push({
-        id: innerId,
-        title: section.title,
-        pages: remappedPages,
-      });
-      allSections.push({
-        id: innerId,
-        title: section.title,
-        pages: remappedPages,
-      });
+
+      // Gather pages for this section (excluding the promoted overview page)
+      const sectionPages = section.pages
+        .filter(pid => pid !== overviewPageId)
+        .map(pid => struct.pages.find(p => p.id === pid))
+        .filter(Boolean);
+
+      if (sectionPages.length === 0) {
+        continue;
+      }
+
+      // Decide: merge thin pages into one combined page, or keep as individual pages
+      const totalContent = sectionPages.reduce((sum, p) => sum + p.content.length, 0);
+      const allThin = sectionPages.every(p => p.content.length < THIN_PAGE_THRESHOLD);
+      const shouldMerge = sectionPages.length > 1 && (allThin || totalContent < SECTION_MERGE_THRESHOLD);
+
+      if (shouldMerge) {
+        // Merge all pages into a single combined page named after the section
+        const combinedId = `combined-${wikiId}-${section.id}`;
+        const combinedContent = sectionPages.map(p => {
+          // Strip the <details> source-files block and leading # title if present,
+          // then wrap each page as an ## heading inside the combined page
+          let body = p.content;
+          // Remove <details>...</details> block
+          body = body.replace(/<details>[\s\S]*?<\/details>\s*/g, '');
+          // Remove leading # Title line (we'll use ## instead)
+          body = body.replace(/^#\s+[^\n]+\n+/, '');
+          return `## ${p.title}\n\n${body.trim()}`;
+        }).join('\n\n---\n\n');
+
+        const combinedPage = {
+          id: combinedId,
+          title: section.title,
+          content: combinedContent,
+          filePaths: sectionPages.flatMap(p => p.filePaths || []),
+          importance: sectionPages.some(p => p.importance === 'high') ? 'high' : 'medium',
+          relatedPages: [],
+          parentId: innerId,
+        };
+        allPages.push(combinedPage);
+        totalPages++;
+
+        // Section points to the single combined page (will be flattened by tree view)
+        innerSubsections.push({ id: innerId, title: section.title, pages: [combinedId] });
+        allSections.push({ id: innerId, title: section.title, pages: [combinedId] });
+
+      } else {
+        // Keep pages individually
+        const pageIds = [];
+        for (const page of sectionPages) {
+          allPages.push({ ...page, parentId: innerId });
+          totalPages++;
+          pageIds.push(page.id);
+        }
+        innerSubsections.push({ id: innerId, title: section.title, pages: pageIds });
+        allSections.push({ id: innerId, title: section.title, pages: pageIds });
+      }
     }
 
-    // Create subsystem-level subsection (pages includes the overview page ID if promoted)
+    // Create subsystem-level subsection
     const subSection = {
       id: subSectionId,
       title: struct.title.replace(/ Wiki$/, ''),
