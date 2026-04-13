@@ -50,7 +50,7 @@ try {
 
     # Step 2: Prepare package
     Write-Host "`n=== Preparing deployment package ===" -ForegroundColor Cyan
-    Copy-Item "public" "$standalone\public" -Recurse -Force
+    Copy-Item "public\*" "$standalone\public" -Recurse -Force
     Copy-Item ".next\static" "$standalone\.next\static" -Recurse -Force
 
     $zipPath = Join-Path $ProjectRoot "codewiki-deploy.zip"
