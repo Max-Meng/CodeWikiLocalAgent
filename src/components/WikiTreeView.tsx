@@ -82,6 +82,31 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
       pid => pid !== sectionId && !subsectionIds.has(pid)
     );
     const isOverviewSelected = currentPageId === sectionId;
+    const hasSubsections = section.subsections && section.subsections.length > 0;
+
+    // Flatten: if section has exactly 1 page (or 1 overview page) and no subsections, render as a plain item
+    const solePageId = !hasSubsections && childPages.length === 0 && hasOverviewPage ? sectionId
+      : !hasSubsections && childPages.length === 1 && !hasOverviewPage ? childPages[0]
+      : null;
+    if (solePageId) {
+      const page = wikiStructure.pages.find(p => p.id === solePageId);
+      if (page) {
+        return (
+          <div key={sectionId} className="mb-2">
+            <button
+              className={`w-full text-left px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                currentPageId === solePageId
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30'
+                  : 'text-[var(--foreground)] hover:bg-[var(--background)] border border-transparent'
+              } ${level === 0 ? 'bg-[var(--background)]/50' : ''}`}
+              onClick={() => onPageSelect(solePageId)}
+            >
+              <span className="truncate">{page.title}</span>
+            </button>
+          </div>
+        );
+      }
+    }
 
     return (
       <div key={sectionId} className="mb-2">
@@ -110,7 +135,7 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
               }
             }}
           >
-            <span className="truncate"><span className="text-[var(--muted)] mr-1.5 font-normal">{sectionId}</span>{section.title}</span>
+            <span className="truncate">{section.title}</span>
           </button>
         </div>
 
@@ -133,7 +158,6 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
                   onClick={() => onPageSelect(pageId)}
                 >
                   <div className="flex items-center">
-                    <span className="text-[var(--muted)] mr-1.5 text-xs flex-shrink-0">{pageId}</span>
                     <span className="truncate">{page.title}</span>
                   </div>
                 </button>
@@ -167,7 +191,32 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
       pid => pid !== section.id && !subsectionIds.has(pid)
     );
     const isOverviewSelected = currentPageId === section.id;
-    const hasChildren = childPages.length > 0 || (section.subsections && section.subsections.length > 0);
+    const hasSubsections = section.subsections && section.subsections.length > 0;
+    const hasChildren = childPages.length > 0 || hasSubsections;
+
+    // Flatten: if section has exactly 1 page (or 1 overview page) and no subsections, render as a plain item
+    const solePageId = !hasSubsections && childPages.length === 0 && hasOverviewPage ? section.id
+      : !hasSubsections && childPages.length === 1 && !hasOverviewPage ? childPages[0]
+      : null;
+    if (solePageId) {
+      const page = wikiStructure.pages.find(p => p.id === solePageId);
+      if (page) {
+        return (
+          <div key={section.id} className="mb-1">
+            <button
+              className={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
+                currentPageId === solePageId
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30'
+                  : 'text-[var(--foreground)] hover:bg-[var(--background)] border border-transparent'
+              }`}
+              onClick={() => onPageSelect(solePageId)}
+            >
+              <span className="truncate">{page.title}</span>
+            </button>
+          </div>
+        );
+      }
+    }
 
     return (
       <div key={section.id} className="mb-1">
@@ -194,7 +243,7 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
               }
             }}
           >
-            <span className="truncate"><span className="text-[var(--muted)] mr-1.5 font-normal">{section.id}</span>{section.title}</span>
+            <span className="truncate">{section.title}</span>
           </button>
         </div>
 
@@ -213,7 +262,7 @@ const WikiTreeView: React.FC<WikiTreeViewProps> = ({
                   }`}
                   onClick={() => onPageSelect(pageId)}
                 >
-                  <span className="truncate"><span className="text-[var(--muted)] mr-1.5 text-xs">{pageId}</span>{page.title}</span>
+                  <span className="truncate">{page.title}</span>
                 </button>
               );
             })}

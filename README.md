@@ -120,6 +120,53 @@ Open http://localhost:3000 to see the home page with your project card. Click it
 node scripts/validate-wiki-data.js C:\OtherProject\output\wiki-data.json --fix --name other-project
 ```
 
+### Step 2b: Merge Sub-Wikis (optional)
+
+For large monorepos, you may generate separate wikis per subsystem and then merge them into a single consolidated wiki with nested navigation. This keeps the home page clean while preserving a deep, organized structure.
+
+```powershell
+# Merge sub-wikis into one consolidated wiki using a config file
+node scripts/merge-wikis.mjs config/merge-MyProject.json
+
+# Merge and auto-publish to the registry in one step
+node scripts/merge-wikis.mjs config/merge-MyProject.json --publish
+```
+
+**Merge config format** (`config/merge-<name>.json`):
+
+```json
+{
+  "id": "my-project",
+  "title": "My Project — Consolidated Wiki",
+  "description": "Merged wiki covering all subsystems.",
+  "source": "C:\\path\\to\\repo",
+  "overview": {
+    "title": "Repository Overview",
+    "content": "# Overview\n\nTop-level overview in Markdown...",
+    "contentFile": "relative/path/to/overview.md"
+  },
+  "groups": [
+    { "title": "Core", "wikis": ["sub-wiki-a", "sub-wiki-b"] },
+    { "title": "Extensions", "wikis": ["sub-wiki-c"] }
+  ]
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Project ID for the registry and output filename |
+| `title` | Yes | Display title for the merged wiki |
+| `description` | No | Short description |
+| `source` | No | Source repository path (metadata only) |
+| `overview` | No | Top-level overview page — `content` (inline Markdown) or `contentFile` (path relative to config) |
+| `groups` | Yes | Array of `{ title, wikis }` defining the section hierarchy |
+
+The merge script:
+- Loads each sub-wiki from `public/wikis/<id>.json`
+- Groups them into top-level sections per the config
+- Promotes single-page "Overview" sections to clickable section headers (no redundant nesting)
+- Outputs a single consolidated `wiki-data.json`
+
 ### Step 3: Production Build
 
 ```powershell
@@ -235,8 +282,11 @@ docker compose up
     generate-wiki.prompt.md   # Orchestration prompt
 config/
   scan-filters.json             # File extension & directory filters
+  merge-DsMainDev.json          # Example merge config for a monorepo
 scripts/
   validate-wiki-data.js       # Validates wiki JSON, auto-fixes drift, copies to public/
+  merge-wikis.mjs             # Merges multiple sub-wikis into one consolidated wiki
+  cleanup-registry.mjs        # Removes sub-wiki entries from the registry
   Build-WikiSite.ps1          # Build + optional Azure ZIP deploy
 src/
   app/
@@ -299,13 +349,21 @@ The `wiki-data.json` file follows this structure:
       {
         "id": "section-overview",
         "title": "Overview",
-        "pages": ["overview", "getting-started"]
+        "pages": ["overview", "getting-started"],
+        "subsections": ["section-child"]
       }
     ],
     "rootSections": ["section-overview"]
   }
 }
 ```
+
+### Navigation Behaviors
+
+The tree view applies two smart rendering rules automatically:
+
+- **Clickable section headers**: If a page's `id` matches a section's `id`, the section header itself becomes clickable and navigates to that page — no separate child link.
+- **Single-page flattening**: Sections with exactly one page and no subsections render as a flat item (no expand/collapse folder).
 
 ## Comparison with DeepWikiLocal
 

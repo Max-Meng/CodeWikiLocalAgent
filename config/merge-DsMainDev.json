@@ -1,0 +1,22 @@
+{
+  "$schema": "./merge-config.schema.json",
+  "id": "DsMainDev",
+  "title": "DsMainDev — SQL Server Engine",
+  "description": "Comprehensive code wiki for the SQL Server engine repository. Covers 16 subsystems: SQLOS, SQL DK, Storage Engine, Query Processor, Metadata, Frontend, TDS, Hekaton, HADR, DW Engine, DW QP, Replication, Extensibility, Common Libraries, and Azure SQL Cloud Services (XDB).",
+  "source": "C:\\SS\\Code\\DsMainDev",
+  "overview": {
+    "title": "DsMainDev Repository Overview",
+    "contentFile": null,
+    "content": "# DsMainDev — SQL Server Engine Source\n\n## Overview\n\nThe DsMainDev repository contains the complete SQL Server engine source code, organized into the following major subsystems:\n\n```mermaid\ngraph TD\n    A[DsMainDev Repository] --> B[Foundation Layer]\n    A --> C[Storage & Data]\n    A --> D[Query Processing]\n    A --> E[Connectivity & Frontend]\n    A --> F[High Availability & Replication]\n    A --> G[Data Warehouse Engine]\n    A --> H[Specialized Engines]\n    A --> I[Azure SQL Cloud Services]\n    B --> B1[SQLOS & Base]\n    B --> B2[SQL Data Kernel]\n    B --> B3[Common Libraries]\n    C --> C1[Storage Engine]\n    C --> C2[Metadata]\n    D --> D1[Query Processor]\n    D --> D2[DW Query Processor]\n    E --> E1[TDS Protocol]\n    E --> E2[SQL Frontend]\n    F --> F1[HADR / Always On]\n    F --> F2[Replication]\n    G --> G1[DW Engine / Scribe / Shuffle]\n    H --> H1[Hekaton In-Memory OLTP]\n    H --> H2[Extensibility & PolyBase]\n    I --> I1[XDB Common]\n    I --> I2[XDB Services]\n```\n\n## Directory Structure\n\n| Path | Subsystem | Language |\n|------|-----------|----------|\n| `Sql/DkTemp/` | SQLOS & Base Layer | C/C++ |\n| `Sql/Ntdbms/DK/` | SQL Data Kernel | C/C++ |\n| `Sql/Ntdbms/storeng/` | Storage Engine | C/C++ |\n| `Sql/Ntdbms/query/` | Query Processor | C/C++ |\n| `Sql/Ntdbms/query_dw/` | DW Query Processor | C/C++ |\n| `Sql/Ntdbms/metadata/` | Metadata Engine | C/C++ |\n| `Sql/Ntdbms/frontend/` | SQL Frontend | C/C++ |\n| `Sql/Ntdbms/tds/` | TDS Protocol | C/C++ |\n| `Sql/Ntdbms/Hekaton/` | In-Memory OLTP | C/C++ |\n| `Sql/Ntdbms/hadr/` | Always On (HADR) | C/C++ |\n| `Sql/Ntdbms/dw/` | DW Engine | C/C++ |\n| `Sql/Ntdbms/extensibility/` | Extensibility/PolyBase | C/C++ |\n| `Sql/Sqlrepl/` | Replication | C/C++ |\n| `Sql/Common/` | Common Libraries | C/C++, C# |\n| `Sql/xdb/common/` | XDB Common | C# |\n| `Sql/xdb/manifest/svc/` | XDB Services | C# |"
+  },
+  "groups": [
+    { "title": "Foundation Layer",                "wikis": ["sqlos-base", "sqldk", "common-libraries"] },
+    { "title": "Storage & Data",                  "wikis": ["storeng", "metadata"] },
+    { "title": "Query Processing",                "wikis": ["query-processor", "dw-query-processor"] },
+    { "title": "Connectivity & Frontend",         "wikis": ["tds-protocol", "frontend"] },
+    { "title": "High Availability & Replication",  "wikis": ["hadr", "replication"] },
+    { "title": "Data Warehouse Engine",           "wikis": ["dw-engine"] },
+    { "title": "Specialized Engines",             "wikis": ["hekaton", "extensibility"] },
+    { "title": "Azure SQL Cloud Services",        "wikis": ["xdb-common", "xdb-services"] }
+  ]
+}
